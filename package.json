@@ -1,0 +1,15 @@
+{
+  "name": "sponnersweb-workspace",
+  "private": true,
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "scripts": {
+    "backend": "node ./backend/server.js",
+    "frontend": "npm --prefix ./frontend start",
+    "frontend:build": "npm --prefix ./frontend run build",
+    "frontend:test": "npm --prefix ./frontend test",
+    "frontend:install": "npm --prefix ./frontend install",
+    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm run backend\" \"npm run frontend\""
+  }
+}
