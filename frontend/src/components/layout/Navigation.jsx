@@ -1,17 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/SOT_Logo.jpg";
 
 const menu = [
-	{ label: "DAS SIND WIR", path: "/das-sind-wir-1" },
-	{ label: "UNSER VAN", path: "/unser-van" },
 	{
-		label: "UNIMOG PROJEKT",
-		path: "/unimog-projekt",
+		label: "SPOONERS",
+		path: "/das-sind-wir-1",
 		children: [
-			{ label: "Fahrzeugvorstellung", path: "/unimog-projekt/fahrzeugvorstellung" },
-			{ label: "Planung & Konzept", path: "/unimog-projekt/planung-konzept" },
-			{ label: "Der Ausbau", path: "/unimog-projekt/der-ausbau" }
+			{ label: "Rania", path: "/das-sind-wir-1" },
+			{ label: "Daniel", path: "/das-sind-wir-1" },
+			{ label: "(Albert) Einstein", path: "/das-sind-wir-1" }
+		]
+	},
+	{
+		label: "ON TOUR",
+		path: "/on-tour",
+		children: [
+			{ label: "Unser Van", path: "/unser-van" },
+			{ label: "Unimog Projekt", path: "/unimog-projekt" },
+			{ label: "Wandern", path: "/wandern-1" },
+			{ label: "Unsere Ausrüstung", path: "/unsere-ausruestung" }
 		]
 	},
 	{
@@ -22,18 +30,16 @@ const menu = [
 			{ label: "Video Blog #Vlog", path: "/blog/video-blog-vlog" }
 		]
 	},
-	{ label: "UNSERE AUSRÜSTUNG", path: "/unsere-ausruestung" },
-	{
-		label: "KOCHEN IM VAN",
-		path: "/kochen-im-van",
-		children: [{ label: "Lieblingsgerichte", path: "/kochen-im-van/lieblingsgerichte" }]
-	},
 	{ label: "NÜTZLICHES", path: "/nuetzliches" },
-	{ label: "WANDERN", path: "/wandern-1" },
 	{ label: "SO ERREICHST DU UNS", path: "/so-erreichst-du-uns" }
 ];
 
 export default function Navigation() {
+	const [openMenu, setOpenMenu] = useState(null);
+
+	const handleMouseEnter = (label) => setOpenMenu(label);
+	const handleMouseLeave = () => setOpenMenu(null);
+
 	return (
 		<nav className="navbar navbar-expand-lg navbar-dark shadow-sm navbar-clean">
 			<div className="container-fluid px-4 px-xxl-5 py-2 py-lg-3">
@@ -54,20 +60,25 @@ export default function Navigation() {
 				</button>
 
 				<div className="collapse navbar-collapse" id="mainNavbar">
-					<div className="navbar-center">
-						<ul className="navbar-nav gap-lg-1 gap-xl-2 align-items-lg-center flex-nowrap mb-2 mb-lg-0 justify-content-center">
+					<div className="navbar-center ms-auto">
+						<ul className="navbar-nav gap-lg-1 gap-xl-2 align-items-lg-center flex-nowrap mb-2 mb-lg-0 justify-content-end">
 							{menu.map((item) =>
 								item.children ? (
-									<li className="nav-item dropdown" key={item.label}>
+									<li
+										className={`nav-item dropdown${openMenu === item.label ? " show" : ""}`}
+										key={item.label}
+										onMouseEnter={() => handleMouseEnter(item.label)}
+										onMouseLeave={handleMouseLeave}
+									>
 										<button
-											className="nav-link dropdown-toggle btn btn-link border-0 p-0"
+											className="nav-link btn btn-outline-light btn-sm px-3 py-2 menu-pill dropdown-toggle"
 											type="button"
 											data-bs-toggle="dropdown"
-											aria-expanded="false"
+											aria-expanded={openMenu === item.label}
 										>
 											{item.label}
 										</button>
-										<ul className="dropdown-menu dropdown-menu-end">
+										<ul className={`dropdown-menu dropdown-menu-end${openMenu === item.label ? " show" : ""}`}>
 											<li>
 												<Link className="dropdown-item" to={item.path}>
 													{item.label}
@@ -89,7 +100,7 @@ export default function Navigation() {
 									<li className="nav-item" key={item.label}>
 										<NavLink
 											to={item.path}
-											className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+											className={({ isActive }) => `nav-link btn btn-outline-light btn-sm px-3 py-2 menu-pill${isActive ? " active" : ""}`}
 											end={item.path === "/"}
 										>
 											{item.label}
