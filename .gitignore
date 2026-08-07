@@ -148,6 +148,10 @@ vite.config.ts.timestamp-*
 # Build output
 build/
 
+# Playwright artifacts
+test-results/
+playwright-report/
+
 # uploads
 uploads/*
 !uploads/.gitkeep

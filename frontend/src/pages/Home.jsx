@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
 	return (
-		<main>
-			<section className="hero-section d-flex align-items-center">
-				<div className="container text-center">
+		<main className="page-shell">
+			<section className="page-content hero-page-content">
+				<div className="container text-center page-text-wrap">
 					<h1 className="display-5 fw-bold mb-3">Willkommen bei spooners on tour</h1>
 					<p className="lead text-telegrau mb-4">Das sind wir. Unimog Projekt. Blog.</p>
 

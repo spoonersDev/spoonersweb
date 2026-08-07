@@ -4,6 +4,10 @@ import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
+import DasSindWir from "./pages/DasSindWir";
+import Entdecken from "./pages/Entdecken";
+import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 const randomParagraphs = [
 	"Random Text: Zwischen Bergpass und Wüstenpiste sammeln wir Eindrücke, Geschichten und kleine Momente, die unterwegs oft größer werden als geplant.",
@@ -44,7 +48,21 @@ export default function App() {
 
 			<Routes>
 				<Route path="/" element={<Home />} />
-				<Route path="/das-sind-wir-1" element={<BackgroundPage title="Das sind wir" />} />
+				<Route path="/das-sind-wir-1" element={<DasSindWir />} />
+				<Route
+					path="/login"
+					element={<AdminLogin title="Mitglieds-Login" subtitle="Einloggen für den Entdecken-Bereich" />}
+				/>
+				<Route
+					path="/admin/login"
+					element={<AdminLogin redirectPath="/admin" title="Admin Login" subtitle="Zugang zum Admin-Bereich" />}
+				/>
+				<Route path="/entdecken" element={<ProtectedRoute requirePaid />}>
+					<Route index element={<Entdecken />} />
+				</Route>
+				<Route path="/admin" element={<ProtectedRoute requireAdmin loginPath="/admin/login" />}>
+					<Route index element={<AdminDashboard />} />
+				</Route>
 				<Route path="/unser-van" element={<BackgroundPage title="Unser Van" />} />
 
 				<Route path="/unimog-projekt" element={<BackgroundPage title="Unimog Projekt" />} />
@@ -82,7 +100,14 @@ export default function App() {
 				/>
 				<Route path="/nuetzliches" element={<BackgroundPage title="Nützliches" />} />
 				<Route path="/wandern-1" element={<BackgroundPage title="Wandern" />} />
-				<Route path="/admin-login" element={<AdminLogin />} />
+				<Route
+					path="/register"
+					element={<BackgroundPage title="Registrieren" />}
+				/>
+				<Route
+					path="/forgot-password"
+					element={<BackgroundPage title="Passwort vergessen" />}
+				/>
 				<Route
 					path="/so-erreichst-du-uns"
 					element={<BackgroundPage title="So erreichst du uns" />}

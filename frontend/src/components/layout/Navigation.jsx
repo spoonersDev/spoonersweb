@@ -16,10 +16,10 @@ const menu = [
 		label: "ON TOUR",
 		path: "/on-tour",
 		children: [
-			{ label: "Unser Van", path: "/unser-van" },
 			{ label: "Unimog Projekt", path: "/unimog-projekt" },
 			{ label: "Wandern", path: "/wandern-1" },
-			{ label: "Unsere Ausrüstung", path: "/unsere-ausruestung" }
+			{ label: "Unsere Ausrüstung", path: "/unsere-ausruestung" },
+			{ label: "NÜTZLICHES", path: "/nuetzliches" }
 		]
 	},
 	{
@@ -30,7 +30,6 @@ const menu = [
 			{ label: "Video Blog #Vlog", path: "/blog/video-blog-vlog" }
 		]
 	},
-	{ label: "NÜTZLICHES", path: "/nuetzliches" },
 	{ label: "SO ERREICHST DU UNS", path: "/so-erreichst-du-uns" }
 ];
 
@@ -41,9 +40,9 @@ export default function Navigation() {
 	const handleMouseLeave = () => setOpenMenu(null);
 
 	return (
-		<nav className="navbar navbar-expand-lg navbar-dark shadow-sm navbar-clean">
+		<nav className="navbar navbar-expand-lg navbar-dark navbar-clean">
 			<div className="container-fluid px-4 px-xxl-5 py-2 py-lg-3">
-				<Link className="navbar-brand d-flex align-items-center me-lg-5" to="/" aria-label="spooners on tour">
+				<Link className="navbar-brand d-flex align-items-center me-lg-3" to="/" aria-label="spooners on tour">
 					<img className="navbar-logo" src={logo} alt="spooners on tour logo" />
 				</Link>
 
@@ -59,8 +58,8 @@ export default function Navigation() {
 					<span className="navbar-toggler-icon" />
 				</button>
 
-				<div className="collapse navbar-collapse" id="mainNavbar">
-					<div className="navbar-center ms-auto">
+				<div className="collapse navbar-collapse justify-content-start" id="mainNavbar">
+					<div className="navbar-center">
 						<ul className="navbar-nav gap-lg-1 gap-xl-2 align-items-lg-center flex-nowrap mb-2 mb-lg-0 justify-content-end">
 							{menu.map((item) =>
 								item.children ? (
@@ -71,7 +70,7 @@ export default function Navigation() {
 										onMouseLeave={handleMouseLeave}
 									>
 										<button
-											className="nav-link btn btn-outline-light btn-sm px-3 py-2 menu-pill dropdown-toggle"
+											className={`nav-link btn btn-outline-light btn-sm px-3 py-2 menu-pill dropdown-toggle${openMenu === item.label ? " active" : ""}`}
 											type="button"
 											data-bs-toggle="dropdown"
 											aria-expanded={openMenu === item.label}
@@ -79,14 +78,6 @@ export default function Navigation() {
 											{item.label}
 										</button>
 										<ul className={`dropdown-menu dropdown-menu-end${openMenu === item.label ? " show" : ""}`}>
-											<li>
-												<Link className="dropdown-item" to={item.path}>
-													{item.label}
-												</Link>
-											</li>
-											<li>
-												<hr className="dropdown-divider" />
-											</li>
 											{item.children.map((child) => (
 												<li key={child.label}>
 													<Link className="dropdown-item" to={child.path}>
@@ -112,8 +103,8 @@ export default function Navigation() {
 					</div>
 
 					<div className="navbar-login mt-2 mt-lg-0">
-						<Link to="/admin-login" className="btn btn-outline-light btn-sm px-3 py-2">
-							Login
+						<Link to="/login" className="btn btn-outline-light btn-sm px-3 py-2">
+							Mitglieder-Login
 						</Link>
 					</div>
 				</div>

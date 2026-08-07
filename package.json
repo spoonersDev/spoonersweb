@@ -2,6 +2,7 @@
   "name": "sponnersweb-workspace",
   "private": true,
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "concurrently": "^9.0.1"
   },
   "scripts": {
@@ -10,6 +11,8 @@
     "frontend:build": "npm --prefix ./frontend run build",
     "frontend:test": "npm --prefix ./frontend test",
     "frontend:install": "npm --prefix ./frontend install",
-    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm run backend\" \"npm run frontend\"",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   }
 }
