@@ -3,7 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const { contentRouter } = require('./routes/content');
-const { mapRouter } = require('./routes/map');
+const { externalRouter } = require('./routes/external');
 
 dotenv.config();
 
@@ -13,7 +13,8 @@ const PORT = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 app.use('/api/content', contentRouter);
-app.use('/api/member', mapRouter);
+app.use('/api/external', externalRouter);
+
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true, message: 'backend is running' });
@@ -41,6 +42,7 @@ app.post('/api/auth/login', (req, res) => {
 
   return res.status(401).json({ success: false, message: 'Ungültige Anmeldedaten' });
 });
+
 
 function createServer(port = PORT) {
   return app.listen(port, () => {

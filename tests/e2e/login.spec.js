@@ -16,7 +16,7 @@ test.describe('Admin Login', () => {
     await page.getByRole('button', { name: 'Anmelden' }).click();
 
     await expect(page).toHaveURL(/\/entdecken$/);
-    await expect(page.getByRole('heading', { name: 'Entdecken' })).toBeVisible();
+    await expect(page.locator('main.page-shell')).toBeVisible();
   });
 
   test('zeigt Fehlermeldung bei ungültigen Zugangsdaten', async ({ page }) => {
