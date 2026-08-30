@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const dotenv = require('dotenv');
+
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const { contentRouter } = require('./routes/content');
 const { externalRouter } = require('./routes/external');
-
-dotenv.config();
+const { authRouter } = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -14,34 +17,13 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/content', contentRouter);
 app.use('/api/external', externalRouter);
-
+app.use('/api/auth', authRouter);
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true, message: 'backend is running' });
 });
 
-app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body || {};
 
-  if (username === 'admin' && password === 'admin123') {
-    const user = {
-      username,
-      role: 'admin',
-      subscriptionActive: true
-    };
-
-    const token = jwt.sign(user, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '1h' });
-
-    return res.json({
-      success: true,
-      message: 'Anmeldung erfolgt',
-      token,
-      user
-    });
-  }
-
-  return res.status(401).json({ success: false, message: 'Ungültige Anmeldedaten' });
-});
 
 
 function createServer(port = PORT) {

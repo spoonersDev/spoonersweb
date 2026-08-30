@@ -4,6 +4,7 @@ import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
+import Register from "./pages/Register";
 import DasSindWir from "./pages/DasSindWir";
 import Entdecken from "./pages/Entdecken";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -100,10 +101,7 @@ export default function App() {
 				/>
 				<Route path="/nuetzliches" element={<BackgroundPage title="Nützliches" />} />
 				<Route path="/wandern-1" element={<BackgroundPage title="Wandern" />} />
-				<Route
-					path="/register"
-					element={<BackgroundPage title="Registrieren" />}
-				/>
+				<Route path="/register" element={<Register />} />
 				<Route
 					path="/forgot-password"
 					element={<BackgroundPage title="Passwort vergessen" />}
