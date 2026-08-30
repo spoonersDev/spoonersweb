@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
 
 const router = express.Router();
-const { validateLogin } = require('../middleware/requireAuth');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -56,25 +55,47 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', validateLogin, (req, res) => {
-  const { username } = req.body || {};
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body || {};
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
-  const user = {
-    username,
-    role: 'admin',
-    subscriptionActive: true
-  };
+  if (!normalizedEmail || !password) {
+    return res.status(400).json({ success: false, message: 'E-Mail-Adresse und Passwort erforderlich.' });
+  }
 
-  const token = jwt.sign(user, process.env.JWT_SECRET, {
-    expiresIn: '1h'
-  });
+  try {
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, email, password_hash, role, status
+       FROM users
+       WHERE LOWER(email) = LOWER($1)`,
+      [normalizedEmail]
+    );
+    const databaseUser = result.rows[0];
+    const passwordMatches = databaseUser && await bcrypt.compare(password, databaseUser.password_hash);
 
-  return res.json({
-    success: true,
-    message: 'Anmeldung erfolgt',
-    token,
-    user
-  });
+    if (!passwordMatches) {
+      return res.status(401).json({ success: false, message: 'Ungültige Anmeldedaten.' });
+    }
+
+    if (databaseUser.status !== 'active') {
+      return res.status(403).json({ success: false, message: 'Dein Konto wurde noch nicht freigeschaltet.' });
+    }
+
+    const user = {
+      id: databaseUser.id,
+      email: databaseUser.email,
+      firstName: databaseUser.first_name,
+      lastName: databaseUser.last_name,
+      role: databaseUser.role,
+      subscriptionActive: true
+    };
+    const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    return res.json({ success: true, message: 'Anmeldung erfolgt', token, user });
+  } catch (error) {
+    console.error('Anmeldung fehlgeschlagen:', error);
+    return res.status(500).json({ success: false, message: 'Anmeldung konnte nicht verarbeitet werden.' });
+  }
 });
 
 module.exports = { authRouter: router };

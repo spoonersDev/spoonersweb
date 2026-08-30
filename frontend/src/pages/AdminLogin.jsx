@@ -8,7 +8,7 @@ export default function AdminLogin({
 	subtitle = "Willkommen zurück"
 }) {
 	const navigate = useNavigate();
-	const [formData, setFormData] = useState({ username: "", password: "" });
+	const [formData, setFormData] = useState({ email: "", password: "" });
 	const [message, setMessage] = useState("");
 	const [error, setError] = useState("");
 
@@ -56,18 +56,18 @@ export default function AdminLogin({
 
 									<form onSubmit={handleSubmit}>
 										<div className="mb-3">
-											<label htmlFor="username" className="form-label">
-												Benutzername
+											<label htmlFor="email" className="form-label">
+												E-Mail-Adresse
 											</label>
 											<input
-												type="text"
+												type="email"
 												className="form-control"
-												id="username"
-												name="username"
-												value={formData.username}
+												id="email"
+												name="email"
+												value={formData.email}
 												onChange={handleChange}
-												autoComplete="username"
-												placeholder="Dein Benutzername"
+												autoComplete="email"
+												placeholder="Deine E-Mail-Adresse"
 												required
 											/>
 										</div>
