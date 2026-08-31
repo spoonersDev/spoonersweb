@@ -1,5 +1,20 @@
 const jwt = require('jsonwebtoken');
 
+
+// backend/middleware/requireAuth.js
+function validateLogin(req, res, next) {
+  const { username, password } = req.body || {};
+
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Benutzername und Passwort erforderlich'
+    });
+  }
+
+  return next();
+}
+
 function requireAuth(req, res, next) {
 	const authorization = req.headers.authorization || '';
 	const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
@@ -17,16 +32,13 @@ function requireAuth(req, res, next) {
 	}
 }
 
-function requirePaidAccess(req, res, next) {
-	if (!req.user) {
-		return res.status(401).json({ success: false, message: 'Nicht autorisiert' });
-	}
-
-	if (!req.user.subscriptionActive) {
-		return res.status(403).json({ success: false, message: 'Abo erforderlich' });
-	}
-
-	return next();
+function requireRole(allowedRoles) {
+	return (req, res, next) => {
+		if (!req.user || !allowedRoles.includes(req.user.role)) {
+			return res.status(403).json({ success: false, message: 'Zugriff verweigert' });
+		}
+		return next();
+	};
 }
 
-module.exports = { requireAuth, requirePaidAccess };
+module.exports = { validateLogin, requireAuth, requireRole };

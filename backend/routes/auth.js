@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const pool = require('../config/db');
+const { createUser, findUserByEmail } = require('../repositories/userRepository');
 
 const router = express.Router();
 
@@ -32,18 +32,19 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const existingUser = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [normalizedEmail]);
+    const existingUser = await findUserByEmail(normalizedEmail);
 
-    if (existingUser.rowCount > 0) {
+    if (existingUser) {
       return res.status(409).json({ success: false, message: 'Diese E-Mail-Adresse ist bereits registriert.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    await pool.query(
-      `INSERT INTO users (first_name, last_name, email, password_hash)
-       VALUES ($1, $2, $3, $4)`,
-      [firstName.trim(), lastName.trim(), normalizedEmail, passwordHash]
-    );
+    await createUser({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: normalizedEmail,
+      passwordHash
+    });
 
     return res.status(201).json({
       success: true,
@@ -64,13 +65,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
-      `SELECT id, first_name, last_name, email, password_hash, role, status
-       FROM users
-       WHERE LOWER(email) = LOWER($1)`,
-      [normalizedEmail]
-    );
-    const databaseUser = result.rows[0];
+    const databaseUser = await findUserByEmail(normalizedEmail);
     const passwordMatches = databaseUser && await bcrypt.compare(password, databaseUser.password_hash);
 
     if (!passwordMatches) {

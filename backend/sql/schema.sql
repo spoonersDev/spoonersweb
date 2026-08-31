@@ -101,3 +101,59 @@ CREATE TRIGGER trg_pages_updated_at
 CREATE TRIGGER trg_content_blocks_updated_at
 	BEFORE UPDATE ON content_blocks
 	FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_menu_items_parent_id ON menu_items(parent_id);
+
+-- Menüregeln: maximal 5 Einträge insgesamt und höchstens 2 Ebenen
+CREATE OR REPLACE FUNCTION validate_menu_item()
+RETURNS TRIGGER AS $$
+DECLARE
+    parent_parent_id INTEGER;
+    menu_item_count INTEGER;
+BEGIN
+    -- Verhindert, dass parallele Inserts das Limit umgehen.
+    PERFORM pg_advisory_xact_lock(481516234);
+
+    -- Beim Erstellen dürfen insgesamt nicht mehr als fünf Einträge existieren.
+    IF TG_OP = 'INSERT' THEN
+        SELECT COUNT(*) INTO menu_item_count
+        FROM menu_items;
+
+        IF menu_item_count >= 5 THEN
+            RAISE EXCEPTION 'Es sind maximal fünf Menüeinträge erlaubt.'
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
+    -- Ein Element darf nicht sein eigenes Eltern-Element sein.
+    IF NEW.parent_id IS NOT NULL AND NEW.parent_id = NEW.id THEN
+        RAISE EXCEPTION 'Ein Menüeintrag kann nicht sein eigener Eltern-Eintrag sein.'
+            USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- Ein Kind darf selbst kein Kind haben: maximal zwei Ebenen.
+    IF NEW.parent_id IS NOT NULL THEN
+        SELECT parent_id
+        INTO parent_parent_id
+        FROM menu_items
+        WHERE id = NEW.parent_id;
+
+        IF parent_parent_id IS NOT NULL THEN
+            RAISE EXCEPTION 'Eine dritte Menüebene ist nicht erlaubt.'
+                USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_menu_items_validate ON menu_items;
+
+CREATE TRIGGER trg_menu_items_validate
+    BEFORE INSERT OR UPDATE OF parent_id ON menu_items
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_menu_item();
+
+CREATE INDEX IF NOT EXISTS idx_menu_items_parent_sort_order
+    ON menu_items(parent_id, sort_order);
