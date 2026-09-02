@@ -1,41 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../../assets/SOT_Logo.png";
 
-const menu = [
-	{
-		label: "SPOONERS",
-		path: "/das-sind-wir-1",
-		children: [
-			{ label: "Rania", path: "/das-sind-wir-1" },
-			{ label: "Daniel", path: "/das-sind-wir-1" },
-			{ label: "(Albert) Einstein", path: "/das-sind-wir-1" }
-		]
-	},
-	{
-		label: "ON TOUR",
-		path: "/on-tour",
-		children: [
-			{ label: "Unimog Projekt", path: "/unimog-projekt" },
-			{ label: "Wandern", path: "/wandern-1" },
-			{ label: "Unsere Ausrüstung", path: "/unsere-ausruestung" },
-			{ label: "NÜTZLICHES", path: "/nuetzliches" }
-		]
-	},
-	{
-		label: "BLOG",
-		path: "/blog",
-		children: [
-			{ label: "East Tour 2024/2025", path: "/blog/east-tour-2024-2025" },
-			{ label: "Video Blog #Vlog", path: "/blog/video-blog-vlog" }
-		]
-	},
-	{ label: "SO ERREICHST DU UNS", path: "/so-erreichst-du-uns" }
-];
+const API_URL = "http://localhost:5001/api/menu";
 
 export default function Navigation() {
+	const [menu, setMenu] = useState([]);
 	const [openMenu, setOpenMenu] = useState(null);
 	const [isNavOpen, setIsNavOpen] = useState(false);
+
+	useEffect(() => {
+		let isMounted = true;
+		const loadMenu = () =>
+			fetch(API_URL)
+				.then((response) => {
+					if (!response.ok) throw new Error("Menü konnte nicht geladen werden.");
+					return response.json();
+				})
+				.then((data) => {
+					if (isMounted && data.success) setMenu(data.items || []);
+				})
+				.catch(() => {
+					if (isMounted) setMenu([]);
+				});
+
+		loadMenu();
+		window.addEventListener("menu:refresh", loadMenu);
+
+		return () => {
+			isMounted = false;
+			window.removeEventListener("menu:refresh", loadMenu);
+		};
+	}, []);
 
 	const handleMouseEnter = (label) => setOpenMenu(label);
 	const handleMouseLeave = () => setOpenMenu(null);
@@ -67,7 +63,7 @@ export default function Navigation() {
 					<div className="navbar-center">
 						<ul className="navbar-nav gap-lg-1 gap-xl-2 align-items-lg-center flex-nowrap mb-2 mb-lg-0 justify-content-end">
 							{menu.map((item) =>
-								item.children ? (
+								item.children?.length > 0 ? (
 									<li
 										className={`nav-item dropdown${openMenu === item.label ? " show" : ""}`}
 										key={item.label}
@@ -84,7 +80,7 @@ export default function Navigation() {
 										</button>
 										<ul className={`dropdown-menu dropdown-menu-end${openMenu === item.label ? " show" : ""}`}>
 											{item.children.map((child) => (
-												<li key={child.label}>
+														<li key={child.id}>
 													<Link className="dropdown-item" to={child.path} onClick={closeNav}>
 														{child.label}
 													</Link>

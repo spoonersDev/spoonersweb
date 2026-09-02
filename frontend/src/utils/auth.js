@@ -33,5 +33,5 @@ export function hasActiveSubscription() {
 
 export function isAdmin() {
 	const session = getAuthSession();
-	return session?.user?.role === "admin";
+	return String(session?.user?.role || "").trim().toLowerCase() === "admin";
 }

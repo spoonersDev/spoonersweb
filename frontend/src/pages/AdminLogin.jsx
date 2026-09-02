@@ -36,8 +36,11 @@ export default function AdminLogin({
 			}
 
 			saveAuthSession({ token: data.token, user: data.user });
+
 			setMessage(data.message || "Anmeldung erfolgt");
-			navigate(redirectPath, { replace: true });
+				const role = String(data.user?.role || "").trim().toLowerCase();
+				const targetPath = role === "admin" ? "/admin" : redirectPath;
+			navigate(targetPath, { replace: true });
 		} catch (err) {
 			setError(err.message || "Login fehlgeschlagen");
 		}

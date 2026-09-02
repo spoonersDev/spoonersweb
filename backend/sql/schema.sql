@@ -85,6 +85,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_menu_items_updated_at ON menu_items;
 CREATE TRIGGER trg_menu_items_updated_at
 	BEFORE UPDATE ON menu_items
 	FOR EACH ROW EXECUTE FUNCTION set_updated_at();
@@ -104,7 +105,7 @@ CREATE TRIGGER trg_content_blocks_updated_at
 
 CREATE INDEX IF NOT EXISTS idx_menu_items_parent_id ON menu_items(parent_id);
 
--- Menüregeln: maximal 5 Einträge insgesamt und höchstens 2 Ebenen
+-- Menüregeln: maximal 5 Hauptmenüeinträge und höchstens 2 Ebenen
 CREATE OR REPLACE FUNCTION validate_menu_item()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -114,13 +115,15 @@ BEGIN
     -- Verhindert, dass parallele Inserts das Limit umgehen.
     PERFORM pg_advisory_xact_lock(481516234);
 
-    -- Beim Erstellen dürfen insgesamt nicht mehr als fünf Einträge existieren.
+	-- Beim Erstellen dürfen nicht mehr als fünf Hauptmenüeinträge existieren.
     IF TG_OP = 'INSERT' THEN
         SELECT COUNT(*) INTO menu_item_count
         FROM menu_items;
 
-        IF menu_item_count >= 5 THEN
-            RAISE EXCEPTION 'Es sind maximal fünf Menüeinträge erlaubt.'
+		IF NEW.parent_id IS NULL AND (
+			SELECT COUNT(*) FROM menu_items WHERE parent_id IS NULL
+		) >= 5 THEN
+			RAISE EXCEPTION 'Es sind maximal fünf Hauptmenüeinträge erlaubt.'
                 USING ERRCODE = 'check_violation';
         END IF;
     END IF;
