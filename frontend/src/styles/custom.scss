@@ -194,6 +194,30 @@ header,
 	line-height: 1.75;
 }
 
+.cms-editable-wrapper {
+	border: 1px solid transparent;
+	border-radius: 0.35rem;
+	transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.cms-editable-wrapper:hover {
+	border-color: rgba(157, 0, 79, 0.45);
+	background-color: rgba(157, 0, 79, 0.04);
+}
+
+.cms-edit-button {
+	position: absolute;
+	top: 0.15rem;
+	right: 0.15rem;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.cms-editable-wrapper:hover .cms-edit-button,
+.cms-edit-button:focus {
+	opacity: 1;
+}
+
 .site-footer {
 	border-top: 1px solid rgba(87, 87, 87, 0.2);
 	color: var(--telegrau);

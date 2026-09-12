@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS site_revisions (
     published_at TIMESTAMPTZ
 );
 
+ALTER TABLE pages ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT FALSE;
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_site_revisions_one_published
     ON site_revisions (status) WHERE status = 'published';
 

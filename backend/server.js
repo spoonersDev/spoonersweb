@@ -10,6 +10,7 @@ const { contentRouter } = require('./routes/content');
 const { externalRouter } = require('./routes/external');
 const { authRouter } = require('./routes/auth');
 const { publishRouter } = require('./routes/publish');
+const { pagesRouter } = require('./routes/pages');
 const menu = require('./routes/menu');
 
 const app = express();
@@ -21,6 +22,7 @@ app.use('/api/content', contentRouter);
 app.use('/api/external', externalRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/publish', publishRouter);
+app.use('/api/pages', pagesRouter);
 app.use('/api/menu', menu.menuRouter);
 
 app.get('/health', (_req, res) => {

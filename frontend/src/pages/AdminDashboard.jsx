@@ -51,6 +51,8 @@ export default function AdminDashboard() {
   const [orderChanged, setOrderChanged] = useState(false);
   const [orderSaving, setOrderSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [pages, setPages] = useState([]);
+  const [pageDraft, setPageDraft] = useState(null);
 
   const loadMenu = async () => {
     try {
@@ -79,7 +81,50 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadMenu();
+    loadPages();
   }, []);
+
+  const loadPages = async () => {
+    try {
+      const token = getAuthSession()?.token;
+      const response = await fetch(`${API_BASE}/pages`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.message || "Seiten konnten nicht geladen werden.");
+      setPages(data.pages || []);
+    } catch (err) {
+      setError(err.message || "Seiten konnten nicht geladen werden.");
+    }
+  };
+
+  const savePage = async () => {
+    if (!pageDraft?.title?.trim()) {
+      setError("Bitte einen Seitentitel eingeben.");
+      return;
+    }
+
+    try {
+      const token = getAuthSession()?.token;
+      const method = pageDraft.id ? "PUT" : "POST";
+      const url = pageDraft.id ? `${API_BASE}/pages/${pageDraft.id}` : `${API_BASE}/pages`;
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ title: pageDraft.title, slug: pageDraft.slug })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.message || "Seite konnte nicht gespeichert werden.");
+      setPageDraft(null);
+      setError("");
+      await loadPages();
+    } catch (err) {
+      setError(err.message || "Seite konnte nicht gespeichert werden.");
+    }
+  };
 
   const refreshMenu = async () => {
     setRefreshing(true);
@@ -417,6 +462,73 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+          <div className="card mt-4 shadow-sm">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h2 className="h4 mb-0">Seiten verwalten</h2>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setPageDraft({ id: null, title: "", slug: "" })}
+                >
+                  Neue Seite
+                </button>
+              </div>
+
+              {pages.length === 0 ? (
+                <p className="text-muted mb-0">Noch keine dynamischen Seiten angelegt.</p>
+              ) : (
+                <div className="list-group">
+                  {pages.map((page) => (
+                    <div key={page.id} className="list-group-item d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{page.title}</strong>
+                        <div className="small text-muted">/{page.slug}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => setPageDraft({ id: page.id, title: page.title, slug: page.slug })}
+                      >
+                        Bearbeiten
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {pageDraft && (
+                <div className="border rounded p-3 mt-3">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label htmlFor="page-title" className="form-label">Seitentitel</label>
+                      <input
+                        id="page-title"
+                        className="form-control"
+                        value={pageDraft.title}
+                        onChange={(event) => setPageDraft((current) => ({ ...current, title: event.target.value }))}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label htmlFor="page-slug" className="form-label">Seitenpfad (optional)</label>
+                      <input
+                        id="page-slug"
+                        className="form-control"
+                        placeholder="wird automatisch erzeugt"
+                        value={pageDraft.slug}
+                        onChange={(event) => setPageDraft((current) => ({ ...current, slug: event.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3 d-flex gap-2">
+                    <button type="button" className="btn btn-primary" onClick={savePage}>Seite speichern</button>
+                    <button type="button" className="btn btn-outline-secondary" onClick={() => setPageDraft(null)}>Abbrechen</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           {draft && (
             <div className="card mt-4 shadow-sm">
               <div className="card-body">
@@ -443,7 +555,7 @@ export default function AdminDashboard() {
                       value={draft.path}
                       onChange={(e) => handleDraftChange("path", e.target.value)}
                     >
-                      {PAGE_OPTIONS.map((page) => (
+                      {(pages.length ? pages.map((page) => ({ label: page.title, path: `/${page.slug}` })) : PAGE_OPTIONS).map((page) => (
                         <option key={page.path} value={page.path}>{page.label}</option>
                       ))}
                     </select>

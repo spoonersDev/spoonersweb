@@ -5,7 +5,7 @@ import Footer from "./components/layout/Footer";
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
 import Register from "./pages/Register";
-import DasSindWir from "./pages/DasSindWir";
+import ContentPage from "./pages/ContentPage";
 import Entdecken from "./pages/Entdecken";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -69,7 +69,7 @@ export default function App() {
 
 			<Routes>
 				<Route path="/" element={<Home />} />
-				<Route path="/das-sind-wir-1" element={<DasSindWir />} />
+				<Route path="/das-sind-wir-1" element={<ContentPage />} />
 				<Route
 					path="/login"
 					element={<AdminLogin title="Mitglieds-Login" subtitle="Einloggen für den Entdecken-Bereich" />}
@@ -84,43 +84,43 @@ export default function App() {
 				<Route path="/admin" element={<ProtectedRoute requireAdmin loginPath="/admin/login" />}>
 					<Route index element={<AdminDashboard />} />
 				</Route>
-				<Route path="/unser-van" element={<BackgroundPage title="Unser Van" />} />
+				<Route path="/unser-van" element={<ContentPage />} />
 
-				<Route path="/unimog-projekt" element={<BackgroundPage title="Unimog Projekt" />} />
+				<Route path="/unimog-projekt" element={<ContentPage />} />
 				<Route
 					path="/unimog-projekt/fahrzeugvorstellung"
-					element={<BackgroundPage title="Fahrzeugvorstellung" />}
+					 element={<ContentPage />}
 				/>
 				<Route
 					path="/unimog-projekt/planung-konzept"
-					element={<BackgroundPage title="Planung & Konzept" />}
+					 element={<ContentPage />}
 				/>
 				<Route
 					path="/unimog-projekt/der-ausbau"
-					element={<BackgroundPage title="Der Ausbau" />}
+					 element={<ContentPage />}
 				/>
 
-				<Route path="/blog" element={<BackgroundPage title="Blog" />} />
+				<Route path="/blog" element={<ContentPage />} />
 				<Route
 					path="/blog/east-tour-2024-2025"
-					element={<BackgroundPage title="East Tour 2024/2025" />}
+					 element={<ContentPage />}
 				/>
 				<Route
 					path="/blog/video-blog-vlog"
-					element={<BackgroundPage title="Video Blog #Vlog" />}
+					 element={<ContentPage />}
 				/>
 
 				<Route
 					path="/unsere-ausruestung"
-					element={<BackgroundPage title="Unsere Ausrüstung" />}
+					 element={<ContentPage />}
 				/>
 				<Route path="/kochen-im-van" element={<BackgroundPage title="Kochen im Van" />} />
 				<Route
 					path="/kochen-im-van/lieblingsgerichte"
 					element={<BackgroundPage title="Lieblingsgerichte" />}
 				/>
-				<Route path="/nuetzliches" element={<BackgroundPage title="Nützliches" />} />
-				<Route path="/wandern-1" element={<BackgroundPage title="Wandern" />} />
+				<Route path="/nuetzliches" element={<ContentPage />} />
+				<Route path="/wandern-1" element={<ContentPage />} />
 				<Route path="/register" element={<Register />} />
 				<Route
 					path="/forgot-password"
@@ -128,8 +128,9 @@ export default function App() {
 				/>
 				<Route
 					path="/so-erreichst-du-uns"
-					element={<BackgroundPage title="So erreichst du uns" />}
+					 element={<ContentPage />}
 				/>
+				<Route path="/*" element={<ContentPage />} />
 			</Routes>
 
 			<Footer />

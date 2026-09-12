@@ -80,9 +80,12 @@ CREATE TABLE IF NOT EXISTS pages (
 	id SERIAL PRIMARY KEY,
 	slug VARCHAR(150) NOT NULL UNIQUE,
 	title VARCHAR(255) NOT NULL,
+	is_published BOOLEAN NOT NULL DEFAULT FALSE,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE pages ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT FALSE;
 
 -- Editierbare Content-Blöcke einer Seite (Text, Bild, YouTube, ...)
 -- "data" enthält die je nach block_type unterschiedlichen Felder (z.B. text, image_url/alt, video_id)

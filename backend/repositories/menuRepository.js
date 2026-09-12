@@ -200,6 +200,14 @@ async function publishMenu(userId = null) {
        SET status = 'published', published_at = NOW()
        WHERE status = 'draft'`
     );
+    await client.query(
+      `UPDATE pages
+       SET is_published = TRUE
+       WHERE EXISTS (
+         SELECT 1 FROM content_block_versions
+         WHERE content_block_versions.page_slug = pages.slug
+       )`
+    );
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
