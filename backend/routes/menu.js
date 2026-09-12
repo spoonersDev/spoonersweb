@@ -3,11 +3,24 @@ const router = express.Router();
 const { getMenuHierarchy, createMenuItem, updateMenuItem, deleteMenuItem } = require('../repositories/menuRepository');
 const { requireAuth, requireRole } = require('../middleware/requireAuth');
 
+function requireMenuReadAccess(req, res, next) {
+  if (req.query.includeInactive !== 'true') {
+    return next();
+  }
+
+  return requireAuth(req, res, () => {
+    requireRole(['admin', 'editor'])(req, res, next);
+  });
+}
+
 router.get(
         '/',
-        async (_req, res) => {
+        requireMenuReadAccess,
+        async (req, res) => {
+  const includeInactive = req.query.includeInactive === 'true';
+
   try {
-    const menuItems = await getMenuHierarchy();
+    const menuItems = await getMenuHierarchy({ includeInactive });
     return res.status(200).json({ success: true, items: menuItems });
   } catch (error) {
     console.error('Error fetching menu items:', error);

@@ -54,7 +54,12 @@ export default function AdminDashboard() {
   const loadMenu = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/menu`);
+      const token = getAuthSession()?.token;
+      const response = await fetch(`${API_BASE}/menu?includeInactive=true`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -256,9 +261,12 @@ export default function AdminDashboard() {
         <div className="d-flex align-items-center justify-content-between border-bottom py-2">
           <div>
             <div className="fw-semibold">{item.label}</div>
-            <small className="text-muted">
+            <small className="text-muted d-block">
               {PAGE_OPTIONS.find((page) => page.path === item.path)?.label || item.path}
             </small>
+            <span className={`badge ${item.is_active ? "text-bg-success" : "text-bg-secondary"}`}>
+              {item.is_active ? "Aktiv" : "Inaktiv"}
+            </span>
           </div>
 
           <div className="btn-group btn-group-sm">
@@ -429,17 +437,37 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="col-md-4">
-                    <label className="form-label">Aktiv</label>
-                    <select
-                      className="form-select"
-                      value={draft.isActive ? "true" : "false"}
-                      onChange={(e) =>
-                        handleDraftChange("isActive", e.target.value === "true")
-                      }
-                    >
-                      <option value="true">Ja</option>
-                      <option value="false">Nein</option>
-                    </select>
+                    <fieldset>
+                      <legend className="form-label">Status</legend>
+                      <div className="d-flex gap-4">
+                        <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="menu-status"
+                          id="menu-status-active"
+                          checked={draft.isActive}
+                          onChange={() => handleDraftChange("isActive", true)}
+                        />
+                        <label className="form-check-label" htmlFor="menu-status-active">
+                          Aktiv
+                        </label>
+                        </div>
+                        <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="menu-status"
+                          id="menu-status-inactive"
+                          checked={!draft.isActive}
+                          onChange={() => handleDraftChange("isActive", false)}
+                        />
+                        <label className="form-check-label" htmlFor="menu-status-inactive">
+                          Inaktiv
+                        </label>
+                        </div>
+                      </div>
+                    </fieldset>
                   </div>
                 </div>
 

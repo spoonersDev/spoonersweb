@@ -1,10 +1,10 @@
 const pool = require('../config/db');
 
-async function getMenuHierarchy() {
+async function getMenuHierarchy({ includeInactive = false } = {}) {
   const result = await pool.query(
-    `SELECT id, parent_id, label, path, sort_order
+    `SELECT id, parent_id, label, path, sort_order, is_active
      FROM menu_items
-     WHERE is_active = true
+     ${includeInactive ? '' : 'WHERE is_active = true'}
      ORDER BY parent_id NULLS FIRST, sort_order, id`
   );
 
@@ -17,9 +17,9 @@ async function getMenuHierarchy() {
   });
 
   menuItems.forEach(item => {
-    if (item.parent_id) {
+    if (item.parent_id && menuItemsById[item.parent_id]) {
       menuItemsById[item.parent_id].children.push(menuItemsById[item.id]);
-    } else {
+    } else if (!item.parent_id) {
       menuHierarchy.push(menuItemsById[item.id]);
     }
   });
