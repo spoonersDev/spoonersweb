@@ -50,6 +50,7 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [orderChanged, setOrderChanged] = useState(false);
   const [orderSaving, setOrderSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const loadMenu = async () => {
     try {
@@ -85,6 +86,33 @@ export default function AdminDashboard() {
     await loadMenu();
     window.dispatchEvent(new Event("menu:refresh"));
     setRefreshing(false);
+  };
+
+  const publishChanges = async () => {
+    const token = getAuthSession()?.token;
+
+    try {
+      setPublishing(true);
+      const response = await fetch(`${API_BASE}/publish`, {
+        method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Veröffentlichen fehlgeschlagen.");
+      }
+
+      setError("");
+      await loadMenu();
+      window.dispatchEvent(new Event("menu:refresh"));
+    } catch (err) {
+      setError(err.message || "Veröffentlichen fehlgeschlagen.");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   const startNewItem = (parentId = null) => {
@@ -334,6 +362,15 @@ export default function AdminDashboard() {
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2 className="h4 mb-0">Menü verwalten</h2>
             <div className="d-flex gap-2 flex-wrap justify-content-end">
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={publishChanges}
+                disabled={publishing || loading || orderChanged}
+                title={orderChanged ? "Bitte zuerst die Reihenfolge speichern." : "Entwurf veröffentlichen"}
+              >
+                {publishing ? "Veröffentliche..." : "Änderungen veröffentlichen"}
+              </button>
               {orderChanged && (
                 <button
                   type="button"

@@ -20,7 +20,7 @@ router.get(
   const includeInactive = req.query.includeInactive === 'true';
 
   try {
-    const menuItems = await getMenuHierarchy({ includeInactive });
+    const menuItems = await getMenuHierarchy({ includeInactive, userId: req.user?.id });
     return res.status(200).json({ success: true, items: menuItems });
   } catch (error) {
     console.error('Error fetching menu items:', error);
@@ -47,7 +47,8 @@ router.post(
                 path: path.trim(),
                 parentId,
                 sortOrder,
-                isActive
+                isActive,
+                userId: req.user.id
             });
             return res.status(201).json({ success: true, item: newItem });
         } catch (error) {
@@ -109,7 +110,8 @@ router.put(
                 path: normalizedPath,
                 parentId: normalizedParentId,
                 sortOrder: normalizedSortOrder,
-                isActive: normalizedIsActive
+                isActive: normalizedIsActive,
+                userId: req.user.id
             });
 
         if (!updatedItem) {
@@ -155,7 +157,7 @@ router.delete(
     }
 
     try {
-      const deletedItem = await deleteMenuItem(menuId);
+      const deletedItem = await deleteMenuItem(menuId, req.user.id);
 
       if (!deletedItem) {
         return res.status(404).json({

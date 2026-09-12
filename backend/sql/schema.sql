@@ -41,6 +41,40 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAU
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users (LOWER(email));
 
+-- Veröffentlichungsstände für Admin-Entwürfe und öffentliche Inhalte.
+CREATE TABLE IF NOT EXISTS site_revisions (
+	id SERIAL PRIMARY KEY,
+	status VARCHAR(20) NOT NULL CHECK (status IN ('draft', 'published', 'archived')),
+	created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	published_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_site_revisions_one_published
+	ON site_revisions (status) WHERE status = 'published';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_site_revisions_one_draft
+	ON site_revisions (status) WHERE status = 'draft';
+
+-- Menüstand innerhalb einer Revision. Die bisherige menu_items-Tabelle bleibt
+-- als Ausgangspunkt für die initiale Migration erhalten.
+CREATE TABLE IF NOT EXISTS menu_item_versions (
+	id SERIAL PRIMARY KEY,
+	revision_id INTEGER NOT NULL REFERENCES site_revisions(id) ON DELETE CASCADE,
+	source_id INTEGER,
+	parent_id INTEGER REFERENCES menu_item_versions(id) ON DELETE CASCADE,
+	label VARCHAR(120) NOT NULL,
+	path VARCHAR(255) NOT NULL,
+	sort_order INTEGER NOT NULL DEFAULT 0,
+	is_active BOOLEAN NOT NULL DEFAULT TRUE,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_menu_item_versions_revision
+	ON menu_item_versions(revision_id);
+CREATE INDEX IF NOT EXISTS idx_menu_item_versions_parent_sort
+	ON menu_item_versions(revision_id, parent_id, sort_order);
+
 -- Seiten, denen Content-Blöcke zugeordnet werden (identifiziert über slug, z.B. "das-sind-wir-1")
 CREATE TABLE IF NOT EXISTS pages (
 	id SERIAL PRIMARY KEY,
@@ -66,6 +100,24 @@ CREATE TABLE IF NOT EXISTS content_blocks (
 
 CREATE INDEX IF NOT EXISTS idx_content_blocks_page_id ON content_blocks(page_id);
 
+-- Inhalt innerhalb einer Revision. Diese Tabelle bildet später Text-, Bild-
+-- und YouTube-Änderungen gemeinsam mit dem Menü als Entwurf ab.
+CREATE TABLE IF NOT EXISTS content_block_versions (
+	id SERIAL PRIMARY KEY,
+	revision_id INTEGER NOT NULL REFERENCES site_revisions(id) ON DELETE CASCADE,
+	page_slug VARCHAR(150) NOT NULL,
+	block_key VARCHAR(150) NOT NULL,
+	block_type VARCHAR(30) NOT NULL CHECK (block_type IN ('text', 'image', 'youtube')),
+	sort_order INTEGER NOT NULL DEFAULT 0,
+	data JSONB NOT NULL DEFAULT '{}'::jsonb,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+	UNIQUE (revision_id, page_slug, block_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_block_versions_revision
+	ON content_block_versions(revision_id);
+
 -- Hochgeladene Mediendateien (Bilder etc.), referenzierbar aus content_blocks.data
 CREATE TABLE IF NOT EXISTS media (
 	id SERIAL PRIMARY KEY,
@@ -90,6 +142,11 @@ CREATE TRIGGER trg_menu_items_updated_at
 	BEFORE UPDATE ON menu_items
 	FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_menu_item_versions_updated_at ON menu_item_versions;
+CREATE TRIGGER trg_menu_item_versions_updated_at
+	BEFORE UPDATE ON menu_item_versions
+	FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 DROP TRIGGER IF EXISTS trg_users_updated_at ON users;
 CREATE TRIGGER trg_users_updated_at
 	BEFORE UPDATE ON users
@@ -101,6 +158,11 @@ CREATE TRIGGER trg_pages_updated_at
 
 CREATE TRIGGER trg_content_blocks_updated_at
 	BEFORE UPDATE ON content_blocks
+	FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_content_block_versions_updated_at ON content_block_versions;
+CREATE TRIGGER trg_content_block_versions_updated_at
+	BEFORE UPDATE ON content_block_versions
 	FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE INDEX IF NOT EXISTS idx_menu_items_parent_id ON menu_items(parent_id);

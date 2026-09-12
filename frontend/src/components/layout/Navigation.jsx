@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import logo from "../../assets/SOT_Logo.png";
+import { getAuthSession, isAdmin } from "../../utils/auth";
 
 const API_URL = "http://localhost:5001/api/menu";
 
@@ -8,11 +9,23 @@ export default function Navigation() {
 	const [menu, setMenu] = useState([]);
 	const [openMenu, setOpenMenu] = useState(null);
 	const [isNavOpen, setIsNavOpen] = useState(false);
+	const location = useLocation();
+	const isDraftPreview = isAdmin() &&
+		(location.pathname.startsWith("/admin") || new URLSearchParams(location.search).get("preview") === "draft");
+
+	const getNavigationPath = (path) => {
+		if (!isDraftPreview) return path;
+		return `${path}${path.includes("?") ? "&" : "?"}preview=draft`;
+	};
 
 	useEffect(() => {
 		let isMounted = true;
 		const loadMenu = () =>
-			fetch(API_URL)
+			fetch(`${API_URL}${isDraftPreview ? "?includeInactive=true" : ""}`, {
+				headers: isDraftPreview
+					? { Authorization: `Bearer ${getAuthSession()?.token || ""}` }
+					: {}
+			})
 				.then((response) => {
 					if (!response.ok) throw new Error("Menü konnte nicht geladen werden.");
 					return response.json();
@@ -31,7 +44,7 @@ export default function Navigation() {
 			isMounted = false;
 			window.removeEventListener("menu:refresh", loadMenu);
 		};
-	}, []);
+	}, [isDraftPreview]);
 
 	const handleMouseEnter = (label) => setOpenMenu(label);
 	const handleMouseLeave = () => setOpenMenu(null);
@@ -81,7 +94,7 @@ export default function Navigation() {
 										<ul className={`dropdown-menu dropdown-menu-end${openMenu === item.label ? " show" : ""}`}>
 											{item.children.map((child) => (
 														<li key={child.id}>
-													<Link className="dropdown-item" to={child.path} onClick={closeNav}>
+															<Link className="dropdown-item" to={getNavigationPath(child.path)} onClick={closeNav}>
 														{child.label}
 													</Link>
 												</li>
@@ -91,7 +104,7 @@ export default function Navigation() {
 								) : (
 									<li className="nav-item" key={item.label}>
 										<NavLink
-											to={item.path}
+																		to={getNavigationPath(item.path)}
 											className={({ isActive }) => `nav-link btn btn-outline-light btn-sm px-3 py-2 menu-pill${isActive ? " active" : ""}`}
 											end={item.path === "/"}
 											onClick={closeNav}

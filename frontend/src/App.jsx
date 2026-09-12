@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Link, Route, Routes, useLocation } from "react-router-dom";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import Home from "./pages/Home";
@@ -9,6 +9,7 @@ import DasSindWir from "./pages/DasSindWir";
 import Entdecken from "./pages/Entdecken";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import { isAdmin } from "./utils/auth";
 
 const randomParagraphs = [
 	"Random Text: Zwischen Bergpass und Wüstenpiste sammeln wir Eindrücke, Geschichten und kleine Momente, die unterwegs oft größer werden als geplant.",
@@ -42,10 +43,29 @@ function BackgroundPage({ title }) {
 	);
 }
 
+function DraftPreviewBanner() {
+	const location = useLocation();
+	const isDraftPreview = isAdmin() && new URLSearchParams(location.search).get("preview") === "draft";
+
+	if (!isDraftPreview) return null;
+
+	return (
+		<div className="alert alert-warning rounded-0 mb-0 d-flex justify-content-between align-items-center gap-3">
+			<span>
+				<strong>Vorschau:</strong> Diese Änderungen sind noch nicht veröffentlicht.
+			</span>
+			<Link className="btn btn-sm btn-outline-dark" to="/admin">
+				Zurück zum Adminbereich
+			</Link>
+		</div>
+	);
+}
+
 export default function App() {
 	return (
 		<>
 			<Header />
+			<DraftPreviewBanner />
 
 			<Routes>
 				<Route path="/" element={<Home />} />
